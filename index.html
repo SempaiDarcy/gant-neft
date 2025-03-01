@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Диаграмма Ганта | ТехноНефть</title>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        header {
+            background-color: #ffffff;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            position: absolute;
+            top: 0;
+        }
+        header img {
+            width: 40px;
+            height: 40px;
+        }
+        h1 {
+            color: #62627d;
+            margin: 0;
+        }
+        #chart-container {
+            position: relative;
+            width: 90%;
+            max-width: 900px;
+            height: 60vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .info-box {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            display: none;
+            width: 200px;
+            text-align: left;
+        }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 15px;
+            gap: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-box {
+            width: 15px;
+            height: 15px;
+            display: inline-block;
+        }
+        rect {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <h1>ТехноНефть</h1>
+</header>
+<div id="chart-container">
+    <div id="chart"></div>
+    <div class="info-box" id="info-box"></div>
+</div>
+<div class="legend" id="legend"></div>
+
+<script>
+    drawGantt();
+
+    function drawGantt() {
+        document.getElementById("chart").innerHTML = "";
+        document.getElementById("legend").innerHTML = "";
+        const tasks = [
+            { name: "НИОКР", start: "2025-03-01", end: "2026-03-01", color: "#1f77b4" },
+            { name: "Начало проекта", start: "2025-09-01", end: "2025-09-30", color: "#ff7f0e" },
+            { name: "Подбор персонала", start: "2026-01-01", end: "2026-06-01", color: "#2ca02c" },
+            { name: "Сертификация", start: "2026-04-01", end: "2026-12-01", color: "#d62728" },
+            { name: "Пилотное внедрение", start: "2026-07-01", end: "2027-01-01", color: "#9467bd" },
+            { name: "Маркетинг", start: "2027-02-01", end: "2027-09-01", color: "#8c564b" },
+            { name: "Производство", start: "2027-10-01", end: "2027-12-31", color: "#e377c2" }
+        ];
+
+        const margin = { top: 40, right: 20, bottom: 40, left: 150 };
+        const width = 800 - margin.left - margin.right;
+        const height = tasks.length * 50;
+
+        const svg = d3.select("#chart").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+        const x = d3.scaleTime()
+            .domain([d3.min(tasks, d => new Date(d.start)), d3.max(tasks, d => new Date(d.end))])
+            .range([0, width]);
+
+        const y = d3.scaleBand()
+            .domain(tasks.map(d => d.name))
+            .range([0, height])
+            .padding(0.2);
+
+        svg.append("g").call(d3.axisLeft(y));
+
+        const infoBox = document.getElementById("info-box");
+        svg.selectAll("rect")
+            .data(tasks)
+            .enter().append("rect")
+            .attr("x", d => x(new Date(d.start)))
+            .attr("y", d => y(d.name))
+            .attr("width", d => x(new Date(d.end)) - x(new Date(d.start)))
+            .attr("height", y.bandwidth())
+            .attr("fill", d => d.color)
+            .on("mouseover", function(event, d) {
+                infoBox.style.display = "block";
+                infoBox.innerHTML = `<strong>${d.name}</strong><br>Начало: ${d.start}<br>Окончание: ${d.end}`;
+            })
+            .on("mouseout", function() {
+                infoBox.style.display = "none";
+            });
+
+        tasks.forEach(task => {
+            document.getElementById("legend").innerHTML += `<div class='legend-item'><span class='legend-box' style='background:${task.color}'></span>${task.name}</div>`;
+        });
+    }
+</script>
+</body>
+</html>
